@@ -129,8 +129,24 @@ console.log(newObj.__proto__); // {b:123}
 console.log(newObj); //{a:88}
 ```
 
-> 自己实现一个 Object.create()的思路 1.创建一个对象 2.继承指定父对象 3.使用 Object.defineProperties()为新对象扩展新属性
+> 自己实现一个 Object.create()的思路：
+>
+> - 创建一个对象
+> - 继承指定父对象
+> - 使用 Object.defineProperties()为新对象扩展新属性
 
 ```javascript
-Object.mycreate = function(obj, properties) {};
+Object.mycreate = function(obj, properties) {
+  var F = function() {}; // 新建一个对象
+  F.prototype = obj; // 把传进来的obj设置为新对象的原型
+  if (properties) {
+    // 给新对象设置属性
+    Object.keys(properties).forEach(key => {
+      Object.defineProperty(F, key, properties[key]);
+    });
+  }
+  return new F(); // new 一个实例并返回
+};
 ```
+
+联想：Object.create() 与 new Object() 的区别？
