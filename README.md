@@ -150,3 +150,86 @@ Object.mycreate = function(obj, properties) {
 ```
 
 联想：Object.create() 与 new Object() 的区别？
+
+## new 的本质
+
+> 模拟 new 的实现思路：
+
+- 1.创建一个新的对象，并把新对象的隐式原型(**proto**)指向构造函数的原型(prototype)
+- 2.执行构造函数
+- 3.返回该对象
+
+```javascript
+function myNew(fn) {
+  //创建一个新的对象并把该对象的隐式原型指向构造函数的原型
+  let obj = {
+    __proto__: fn.prototype
+  };
+  let args = Array.prototype.slice.call(arguments, 1);
+  // 指向构造函数
+  fn.call(obj, ...args);
+  // 返回改对象
+  return obj;
+}
+
+//eg
+function Person(name, age) {
+  this.name = name;
+  this.age = age;
+}
+Person.prototype.sayName = function() {
+  console.log('my name is ' + this.name);
+};
+let p1 = myNew(Person, '小红', 18);
+```
+
+## 实现 instanceof
+
+> 实现思路： 右边变量的原型(prototype) 存在于左边变量的原型链上
+
+```javascript
+function myInstanceof(L, R) {
+  // L 表示左表达式， R 表示有表达式
+  let _proto = L.__proto__; // 取L的隐式原型
+  let _prototype = R.prototype; //取R的显式原型
+  while (true) {
+    //这里之所以能用while(true)看起来是死循环的语句，是因为while(true)在函数体里面使用，遇到return就会结束函数执行，相当于break了
+    if (_proto === null) return false;
+    // 这里重点：当_proto 严格等于 _prototype 返回true
+    if (_proto === _prototype) return true;
+    _proto = _proto.__proto__;
+  }
+}
+```
+
+## 实现类的继承(es5)
+
+> 实现思路:
+
+- 1.借用父类构造函数继承父类的实例属性
+- 2.利用 Object.create()创建父类的原型副本，与父类原型完全隔离
+- 3.把子类的构造函数指向子类本省
+
+```javascript
+function Parent(parentName) {
+  this.parentName = parentName;
+}
+Parent.prototype.say = function() {
+  console.log(`${this.parentName}:,你打球的样子想科比`);
+};
+let parent1 = new Parent('老王爸爸');
+parent1.say();
+
+//子类
+function Child(parentName, childName) {
+  Parent.call(this, parentName);
+  this.childName = childName;
+}
+Child.prototype = Object.create(Parent.prototype);
+Child.prototype.say = function() {
+  console.log();
+};
+Child.prototype.constructor = Child;
+
+let child1 = new Child('老王baba', '大头儿子');
+```
