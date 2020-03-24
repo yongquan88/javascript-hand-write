@@ -211,25 +211,35 @@ function myInstanceof(L, R) {
 - 3.把子类的构造函数指向子类本省
 
 ```javascript
+//父类
 function Parent(parentName) {
   this.parentName = parentName;
 }
 Parent.prototype.say = function() {
-  console.log(`${this.parentName}:,你打球的样子想科比`);
+  console.log(`${this.parentName}:,你打球的样子像科比`);
 };
-let parent1 = new Parent('老王爸爸');
-parent1.say();
 
 //子类
 function Child(parentName, childName) {
+  //借用父类的构造函数继承父类的实例属性
   Parent.call(this, parentName);
   this.childName = childName;
 }
+/**
+1.这里不直接用Child.prototype=Parent.prototype的原因是怕共享内存，修改父类或者子类的原型都会影响对方的原型。
+2.不用Child.prototype=new Parent()的原因是会调用2次父类的构造方法(另一次是call)，会存在一份多余的父类实例属性
+3.Object.create()创建了父类的原型副本，与父类原型完全隔离。
+*/
 Child.prototype = Object.create(Parent.prototype);
+// 重新定义Child中的say方法，不影响父类的say
 Child.prototype.say = function() {
-  console.log();
+  console.log(`${this.parentName}好，我是练习篮球时长2年半的${this.childName}`);
 };
 Child.prototype.constructor = Child;
 
-let child1 = new Child('老王baba', '大头儿子');
+let parent1 = new Parent('老王爸爸');
+parent1.say(); //老王爸爸:你打球的样子像科比
+
+let child1 = new Child('老王爸爸', '大头儿子');
+child1.say(); //老王爸爸好，我是练习篮球时长2年半的大头儿子
 ```
